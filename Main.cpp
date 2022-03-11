@@ -18,7 +18,7 @@ private:
 	RectF m_rect; // 土台
 	RectF on_rect; // オンに対応する四角
 	RectF off_rect; // オフに対応する四角
-	Size m_padding = {6,2};
+	Size m_padding = {8,4};
 
 public:
 	// 何も引数がないときのコンストラクタ
@@ -26,15 +26,16 @@ public:
 
 	// 引数ありのコンストラクタ
 	Switch_ratio(const String& on_item, const String& off_item, const Font& font, const Vec2& pos = { 0,0 })
-		:m_font{ font }, on_item{ on_item }, off_item{ off_item }, m_rect{ pos, 0, (m_font.height() + m_padding.y * 2) }, switch_on{true}
+		:m_font{ font }, on_item{ on_item }, off_item{ off_item },switch_on{true}
 	{
+		m_rect = RectF{ pos, 0, (m_font.height() + m_padding.y * 6) };
 		// 土台部分の長方形の幅を決定する
 		m_rect.w = Max(static_cast<int32>(m_font(on_item).region().w), static_cast<int32>(m_font(off_item).region().w))*2;
-		m_rect.w += m_padding.x * 2;
+		m_rect.w += m_padding.x * 6;
 
 		// オン・オフに対応する長方形を決定する。
-		on_rect = RectF{ m_rect.pos + Vec2{m_padding.x, 0}, (m_rect.w-2*m_padding.x) / 2, m_rect.h };
-		off_rect = RectF{ m_rect.pos + Vec2{m_rect.w/2, 0}, (m_rect.w-2*m_padding.x) / 2, m_rect.h };
+		on_rect = RectF{ m_rect.pos + Vec2{m_padding.x, m_padding.y}, (m_rect.w-4*m_padding.x) / 2, m_rect.h-m_padding.y*2 };
+		off_rect = RectF{ m_rect.pos + Vec2{m_rect.w/2+m_padding.x, m_padding.y}, (m_rect.w-4*m_padding.x) / 2, m_rect.h-m_padding.y*2 };
 	}
 
 	// 更新関数
@@ -55,18 +56,18 @@ public:
 	void draw() const
 	{
 		// 土台の描画
-		RectF{ Arg::center(m_rect.center()), m_rect.w + 2, m_rect.h + 6 }.rounded(3).drawShadow(Vec2{ 2,2 }, 8, 1).draw(Palette::Aliceblue);
+		m_rect.rounded(3).drawShadow(Vec2{ 2,2 }, 8, 1).draw(Palette::Aliceblue);
 
 		// オン・オフ部分の描画
-		on_rect.rounded(3).draw(switch_on?Palette::Lavender:Palette::Lightsteelblue);
-		off_rect.rounded(3).draw(switch_on?Palette::Lightsteelblue:Palette::Lavender);
+		on_rect.rounded(3).draw(switch_on?Palette::Lavender:Palette::Lightslategray);
+		off_rect.rounded(3).draw(switch_on?Palette::Lightslategray:Palette::Lavender);
 
-		// 選択されている方を囲む
-		if (switch_on)
+		// マウスが置かれているボタンを囲む
+		if (on_rect.mouseOver()&&switch_on==false)
 		{
 			on_rect.rounded(3).drawFrame(0, 2, Palette::Aquamarine);
 		}
-		else
+		if (off_rect.mouseOver()&&switch_on==true)
 		{
 			off_rect.rounded(3).drawFrame(0, 2, Palette::Aquamarine);
 		}
@@ -95,6 +96,11 @@ public:
 		}
 	}
 
+	// スイッチの位置変更のための関数
+	void setPos(const Vec2& pos)
+	{
+		m_rect.setPos(pos);
+	}
 };
 
 void Main()
